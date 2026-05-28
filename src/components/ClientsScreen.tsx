@@ -25,6 +25,7 @@ interface ClientsScreenProps {
   onAddClient: (client: Omit<Client, 'id'>) => void;
   selectedCompanyPref?: string | null;
   onClearPref?: () => void;
+  adminName?: string;
 }
 
 export default function ClientsScreen({
@@ -32,7 +33,8 @@ export default function ClientsScreen({
   onUpdateClient,
   onAddClient,
   selectedCompanyPref,
-  onClearPref
+  onClearPref,
+  adminName
 }: ClientsScreenProps) {
   // Master List filter/selection
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,7 +116,7 @@ export default function ClientsScreen({
           id: 'note-init',
           text: 'Client onboarding profile generated.',
           date: '2026-05-28',
-          author: 'Alex Rivera',
+          author: adminName || 'Krish Garg',
           isPinned: true
         }
       ],
@@ -238,7 +240,7 @@ export default function ClientsScreen({
           id: `no-c-${Date.now()}`,
           text: newNoteText,
           date: new Date().toISOString().split('T')[0],
-          author: 'Alex Rivera'
+          author: adminName || 'Krish Garg'
         },
         ...activeClient.notes
       ]
