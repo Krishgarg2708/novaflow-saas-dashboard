@@ -41,8 +41,17 @@ import TasksScreen from './components/TasksScreen';
 import CalendarView from './components/CalendarView';
 import AnalyticsScreen from './components/AnalyticsScreen';
 import TeamScreen from './components/TeamScreen';
+import LoginScreen from './components/LoginScreen';
 
 export default function App() {
+  // Core Administrative Onboarding configurations
+  const [adminName, setAdminName] = useState<string>(() => {
+    return localStorage.getItem('nf_crm_admin_name') || '';
+  });
+  const [adminEmail, setAdminEmail] = useState<string>(() => {
+    return localStorage.getItem('nf_crm_admin_email') || '';
+  });
+
   // Navigation & UI States
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
@@ -102,6 +111,32 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('nf_crm_team', JSON.stringify(teamMembers));
   }, [teamMembers]);
+
+  // Synchronize dynamic primary workspace administrator details
+  useEffect(() => {
+    if (adminName) {
+      const initials = adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'KG';
+      const updatedEmail = adminEmail || 'krish.garg2708@gmail.com';
+      
+      setTeamMembers(prev => {
+        const m1 = prev.find(m => m.id === 'team-1');
+        if (m1 && (m1.name !== adminName || m1.email !== updatedEmail || m1.avatar !== initials)) {
+          return prev.map(m => {
+            if (m.id === 'team-1') {
+              return {
+                ...m,
+                name: adminName,
+                email: updatedEmail,
+                avatar: initials
+              };
+            }
+            return m;
+          });
+        }
+        return prev;
+      });
+    }
+  }, [adminName, adminEmail]);
 
   useEffect(() => {
     localStorage.setItem('nf_crm_leads', JSON.stringify(leads));
@@ -209,7 +244,7 @@ export default function App() {
       type: 'lead',
       title: 'Opportunites Removed',
       description: `Cleaned up and deregistered ${ids.length} leads in custom bulk sequence.`,
-      user: 'Alex Rivera'
+      user: adminName
     });
   };
 
@@ -228,7 +263,7 @@ export default function App() {
       type: 'task',
       title: 'New Client Registered',
       description: `Formally onboarded ${newClient.company} to Digital Production suite. ARR sizing logged as $${newClient.contractValue.toLocaleString()}.`,
-      user: 'Alex Rivera'
+      user: adminName
     });
   };
 
@@ -257,7 +292,7 @@ export default function App() {
         type: 'task',
         title: 'Task Checked Complete',
         description: `Coordination task finalized: "${updatedTask.title}".`,
-        user: 'Alex Rivera'
+        user: adminName
       });
     }
   };
@@ -352,6 +387,43 @@ export default function App() {
     return overdueTasks + pendingLeads;
   }, [tasks, leads]);
 
+  // Dynamic initials calculation helper
+  const getInitials = (name: string) => {
+    if (!name) return 'KG';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (!adminName) {
+    return (
+      <LoginScreen 
+        onLogin={(name, email) => {
+          setAdminName(name);
+          setAdminEmail(email);
+          localStorage.setItem('nf_crm_admin_name', name);
+          localStorage.setItem('nf_crm_admin_email', email);
+          
+          setTeamMembers(prev => prev.map(m => {
+            if (m.id === 'team-1') {
+              const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'KG';
+              return {
+                ...m,
+                name,
+                email,
+                avatar: initials
+              };
+            }
+            return m;
+          }));
+        }} 
+      />
+    );
+  }
+
   return (
     <div id="saas-system-viewport" className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       
@@ -384,6 +456,16 @@ export default function App() {
           collapsed={sidebarCollapsed} 
           setCollapsed={setSidebarCollapsed}
           onOpenQuickAction={() => setIsQuickTaskOpen(true)}
+          adminName={adminName}
+          adminEmail={adminEmail}
+          onLogout={() => {
+            if (confirm("Disconnect admin session and reconfigure credentials?")) {
+              setAdminName('');
+              setAdminEmail('');
+              localStorage.removeItem('nf_crm_admin_name');
+              localStorage.removeItem('nf_crm_admin_email');
+            }
+          }}
         />
 
         {/* Workspace body viewport */}
@@ -464,8 +546,19 @@ export default function App() {
               </div>
 
               {/* Developer contact email quick reference card */}
-              <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 text-blue-900 font-extrabold flex items-center justify-center text-[10px]" title="Administrator Alex Rivera">
-                AR
+              <div 
+                onClick={() => {
+                  if (confirm("Disconnect admin session and reconfigure credentials?")) {
+                    setAdminName('');
+                    setAdminEmail('');
+                    localStorage.removeItem('nf_crm_admin_name');
+                    localStorage.removeItem('nf_crm_admin_email');
+                  }
+                }}
+                className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 text-blue-900 font-extrabold flex items-center justify-center text-[10px] cursor-pointer hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 transition-all select-none" 
+                title={`Logged in as ${adminName} (${adminEmail}). Click to setup new credentials / logout.`}
+              >
+                {getInitials(adminName)}
               </div>
 
             </div>
@@ -475,7 +568,7 @@ export default function App() {
           {/* Core main viewing canvas area */}
           <main id="main-content-viewport" className="p-6 overflow-y-auto flex-1 pb-16">
             
-            {/* View Switching Tab router */}
+             {/* View Switching Tab router */}
             {currentTab === 'dashboard' && (
               <DashboardOverview
                 leads={leads}
@@ -489,6 +582,7 @@ export default function App() {
                 onSelectClientByCompany={handleSelectClientRedirect}
                 onAddNewLeadQuick={() => setCurrentTab('leads')}
                 onAddActivity={(act) => setActivities(prev => [{ ...act, id: `act-${Date.now()}`, timestamp: 'Just now' }, ...prev])}
+                adminName={adminName}
               />
             )}
 
@@ -511,6 +605,7 @@ export default function App() {
                 onAddClient={handleAddClient}
                 selectedCompanyPref={clientSearchPref}
                 onClearPref={() => setClientSearchPref(null)}
+                adminName={adminName}
               />
             )}
 
@@ -544,6 +639,8 @@ export default function App() {
               <TeamScreen
                 teamMembers={teamMembers}
                 onUpdateTeamMember={handleUpdateTeamMember}
+                adminName={adminName}
+                adminEmail={adminEmail}
               />
             )}
 
