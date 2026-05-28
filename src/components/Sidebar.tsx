@@ -21,6 +21,9 @@ interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
   onOpenQuickAction: () => void;
+  adminName?: string;
+  adminEmail?: string;
+  onLogout?: () => void;
 }
 
 export default function Sidebar({ 
@@ -28,7 +31,10 @@ export default function Sidebar({
   setCurrentTab, 
   collapsed, 
   setCollapsed,
-  onOpenQuickAction
+  onOpenQuickAction,
+  adminName,
+  adminEmail,
+  onLogout
 }: SidebarProps) {
   
   const navItems = [
@@ -160,14 +166,18 @@ export default function Sidebar({
           </div>
         )}
 
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-950/40 border border-slate-900">
+        <div 
+          onClick={onLogout}
+          className="flex items-center gap-3 p-2 rounded-xl bg-slate-950/40 border border-slate-900 cursor-pointer hover:bg-slate-800 transition-all"
+          title="Click to logout / setup credentials"
+        >
           <div className="w-9 h-9 rounded-full bg-blue-100 text-blue-900 border border-blue-200 font-bold flex items-center justify-center text-xs flex-shrink-0">
-            AR
+            {adminName ? adminName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'KG'}
           </div>
           {!collapsed && (
-            <div className="flex-1 truncate select-none">
-              <p className="text-xs font-medium text-white truncate leading-none mb-0.5">Alex Rivera</p>
-              <p className="text-[10px] text-slate-400 truncate">alex@novaflow</p>
+            <div className="flex-1 truncate select-none col-span-1">
+              <p className="text-xs font-medium text-white truncate leading-none mb-0.5">{adminName || 'Krish Garg'}</p>
+              <p className="text-[10px] text-slate-400 truncate">{adminEmail || 'krish@novaflow'}</p>
             </div>
           )}
         </div>
