@@ -30,6 +30,7 @@ interface DashboardOverviewProps {
   onSelectClientByCompany: (companyName: string) => void;
   onAddNewLeadQuick: () => void;
   onAddActivity: (activity: Omit<ActivityLog, 'id' | 'timestamp'>) => void;
+  adminName?: string;
 }
 
 export default function DashboardOverview({
@@ -43,7 +44,8 @@ export default function DashboardOverview({
   onSelectLead,
   onSelectClientByCompany,
   onAddNewLeadQuick,
-  onAddActivity
+  onAddActivity,
+  adminName
 }: DashboardOverviewProps) {
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
 
@@ -159,7 +161,7 @@ export default function DashboardOverview({
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">NovaFlow Workspace Overview</h1>
           <p className="text-sm text-slate-500 mt-1">
-            Welcome back, <strong className="font-semibold text-slate-800">Alex</strong>. Your 5-member team currently manages 5 active agency accounts and {leads.filter(l => l.status !== 'Converted').length} active prospects.
+            Welcome back, <strong className="font-semibold text-slate-800">{adminName ? adminName.split(' ')[0] : 'Krish'}</strong>. Your 5-member team currently manages 5 active agency accounts and {leads.filter(l => l.status !== 'Converted').length} active prospects.
           </p>
         </div>
         <div className="flex gap-2">
