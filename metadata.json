@@ -1,0 +1,6 @@
+{
+  "name": "NovaFlow CRM",
+  "description": "A robust, productivity-focused CRM and Client Management Dashboard used daily by digital agencies to streamline leads, clients, projects, tasks, and analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
